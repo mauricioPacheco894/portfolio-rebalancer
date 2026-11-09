@@ -247,3 +247,34 @@ class Portfolio:
                 f"Target allocations must sum to {ALLOCATION_TARGET_SUM} "
                 f"(±{ALLOCATION_TOLERANCE}), got {allocation_sum}."
             )
+
+
+if __name__ == "__main__":
+    meta = Stock("META", 500.00)
+    aapl = Stock("AAPL", 200.00)
+
+    portfolio = Portfolio()
+    portfolio.set_holding(meta, 10)
+    portfolio.set_holding(aapl, 25)
+
+    portfolio.set_allocation(meta, 0.40)
+    portfolio.set_allocation(aapl, 0.60)
+
+    total = portfolio.total_value()
+    print(f"Initial Portfolio (Total Value: ${total:.2f}):")
+    for sym, qty in portfolio.holdings.items():
+        px = portfolio._stocks[sym].current_price()
+        val = qty * px
+        pct = (val / total) * Decimal("100")
+        target_pct = portfolio.allocations.get(sym, Decimal("0")) * Decimal("100")
+        print(
+            f"  - {sym}: {qty} shares @ ${px:.2f} = ${val:.2f} "
+            f"(Current: {pct:.1f}% -> Target: {target_pct:.1f}%)"
+        )
+
+    print("\nRebalance Actions (SELL first to free liquidity, then BUY):")
+    for order in portfolio.rebalance():
+        print(
+            f"  [{order.action}] {order.symbol}: {order.shares} shares (${order.amount})"
+        )
+
